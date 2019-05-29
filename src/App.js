@@ -5,15 +5,19 @@ import TodoList from "./component/TodoList";
 
 class App extends React.Component{
 
-    id = 3;
+    id = 6;
 
 
     state = {
         input : '',
         todos: [
-            { id: 0, text: ' 000000000', status: false },
-            { id: 1, text: ' 111111111', status: true },
-            { id: 2, text: ' 222222222', status: false }
+            { id: 1, text: ' 111111111', status: true , parent: "", select : false},
+
+            { id: 3, text: ' 3', status: false , parent: "", select : false},
+            { id: 5, text: ' 3', status: false , parent: 2, select : false},
+
+            { id: 2, text: ' 222222222', status: false , parent: "", select : false},
+            { id: 4, text: ' 1-1', status: false , parent: 1, select : false},
         ]
 
     }
@@ -22,10 +26,13 @@ class App extends React.Component{
     addTask = ()=> {
 
         const {input, todos} = this.state;
-        console.log();
         if(Object.is({input}.input,"")){
             return ;
         }
+        let parent = todos.map((todo)=>{
+            if(todo.select)
+                return todo.id;
+            }).sort();
 
         this.setState({
 
@@ -33,10 +40,11 @@ class App extends React.Component{
                 id: this.id++,
                 text: input,
                 status : false,
+                parent : parent[0] ? parent[0] : "" ,
+                select : false,
             }),
             input : '',
         });
-
     }
 
 
@@ -62,6 +70,7 @@ class App extends React.Component{
             toggleStatus,
             addTask,
             removeTask,
+            onToggleSelect,
         } = this;
         return (
             <TodoTemplate
@@ -77,6 +86,7 @@ class App extends React.Component{
                         todoList = {todos}
                         toggleStatus = {toggleStatus}
                         removeTask = {removeTask}
+                        onToggleSelect = {onToggleSelect}
                         />
                 }
             >
@@ -99,6 +109,40 @@ class App extends React.Component{
                     status: !selected.status
                 },
                 ...todos.slice(index + 1, todos.length)
+            ]
+        });
+    }
+
+    onToggleSelect = (id) => {
+        const {todos} = this.state;
+        const index = todos.findIndex(todo => todo.id === id);
+
+        const selected = todos[index];
+
+        console.log(selected.parent)
+        if (selected.parent) {
+            return;
+        }
+
+
+        this.setState({
+            todos: [
+                ...todos.slice(0, index).map(
+                    (todo)=>{
+                        todo.select = false;
+                        return todo;
+                    },
+                ),
+                {
+                    ...selected,
+                    select: !selected.select,
+                },
+                ...todos.slice(index + 1, todos.length).map(
+                    (todo)=>{
+                        todo.select = false;
+                        return todo;
+                    },
+                )
             ]
         });
     }

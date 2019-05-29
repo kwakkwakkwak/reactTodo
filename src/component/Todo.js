@@ -3,15 +3,18 @@ import './Todo.css';
 
 class Todo extends Component {
 
+
+
     render() {
-        const { text,  id, onToggle, status ,removeTask } = this.props;
+        const { text,  id, onToggle, status , parent ,select,removeTask,onToggleSelect } = this.props;
 
         return (
-            <div>
-                <label onClick={() => onToggle(id)} className={status ? "complete" : ""}>
+            <div className= {parent ? select ? "selected child" : "child" : select ? "selected" : ""}  >
+                <input type="checkbox" onClick={() => onToggle(id)} checked={status ? "checked" : "" } />
+                <label onClick={() => onToggleSelect(id)}  className={status ? "complete" : ""} >
                         {text}
                 </label>
-                <label onClick={() => removeTask(id)} >
+                <label  onClick={() => removeTask(id)} className="child" >
                     X
                 </label>
 
