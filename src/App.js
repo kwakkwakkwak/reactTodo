@@ -2,26 +2,38 @@ import React from 'react';
 import Form from './component/Form.js'
 import TodoTemplate from './component/TodoTemplate.js'
 import TodoList from "./component/TodoList";
+import axios from 'axios';
+let config = {headers: { 'Content-Type': 'application/json',} }
 
 class App extends React.Component{
 
-    id = 6;
+
 
 
     state = {
         input : '',
         todos: [
-            { id: 1, text: ' 111111111', status: true , parent: "", select : false},
-
-            { id: 3, text: ' 3', status: false , parent: "", select : false},
-            { id: 5, text: ' 3', status: false , parent: 2, select : false},
-
-            { id: 2, text: ' 222222222', status: false , parent: "", select : false},
-            { id: 4, text: ' 1-1', status: false , parent: 1, select : false},
+            // { id: 1, text: ' 111111111', status: true , parent: "", select : false},
+            // { id: 3, text: ' 3', status: false , parent: "", select : false},
+            // { id: 5, text: ' 3', status: false , parent: 2, select : false},
+            // { id: 2, text: ' 222222222', status: false , parent: "", select : false},
+            // { id: 4, text: ' 1-1', status: false , parent: 1, select : false}
         ]
 
     }
 
+    getList = () =>{
+
+        axios.get('http://localhost:8080/findAll').then(response =>{
+            this.setState({
+                todos : response.data
+            });
+        });
+    }
+
+    componentDidMount() {
+        this.getList();
+    }
 
     addTask = ()=> {
 
@@ -33,25 +45,28 @@ class App extends React.Component{
             if(todo.select)
                 return todo.id;
             }).sort();
-
+        const todo = JSON.stringify({'text' : input, 'status' : false, 'parent' : parent[0] ? parent[0] : "" , 'select' : "" });
+        axios.post('http://localhost:8080/insert',todo,config).then(response =>{
+            this.setState({
+                todos : response.data
+            });
+        });
         this.setState({
-
-            todos: todos.concat({
-                id: this.id++,
-                text: input,
-                status : false,
-                parent : parent[0] ? parent[0] : "" ,
-                select : false,
-            }),
             input : '',
         });
     }
 
 
     removeTask = (id) => {
-        const { todos } = this.state;
-        this.setState({
-            todos: todos.filter(todo => todo.id !== id)
+        const todo = {"id" : id };
+        axios.post('http://localhost:8080/delete',todo,config).then(response =>{
+            if(response.data < 0  ){
+                return alert("하위 메뉴부터 삭제해주세요 ");
+
+            }
+            this.setState({
+                todos : response.data
+            });
         });
     }
 
@@ -64,6 +79,7 @@ class App extends React.Component{
 
 
     render() {
+
         const {todos,input} = this.state;
         const {
             inputChange,
@@ -100,17 +116,16 @@ class App extends React.Component{
         const index = todos.findIndex(todo => todo.id === id);
 
         const selected = todos[index];
+        selected.status = !selected.status;
 
-        this.setState({
-            todos: [
-                ...todos.slice(0, index),
-                {
-                    ...selected,
-                    status: !selected.status
-                },
-                ...todos.slice(index + 1, todos.length)
-            ]
+        axios.post('http://localhost:8080/insert',selected,config).then(response =>{
+            this.setState({
+                todos : response.data
+            });
         });
+
+
+
     }
 
     onToggleSelect = (id) => {
