@@ -7,3 +7,7 @@
 .selected{
     background: #AAAAAA;
 }
+.MuiSvgIcon-root{
+    width : 12px;
+    height : 12px;
+}

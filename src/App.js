@@ -3,6 +3,8 @@ import Form from './component/Form.js'
 import TodoTemplate from './component/TodoTemplate.js'
 import TodoList from "./component/TodoList";
 import axios from 'axios';
+
+
 let config = {headers: { 'Content-Type': 'application/json',} }
 
 class App extends React.Component{
@@ -13,12 +15,8 @@ class App extends React.Component{
     state = {
         input : '',
         todos: [
-            // { id: 1, text: ' 111111111', status: true , parent: "", select : false},
-            // { id: 3, text: ' 3', status: false , parent: "", select : false},
-            // { id: 5, text: ' 3', status: false , parent: 2, select : false},
-            // { id: 2, text: ' 222222222', status: false , parent: "", select : false},
-            // { id: 4, text: ' 1-1', status: false , parent: 1, select : false}
-        ]
+        ],
+        placeholder : "write Your Task"
 
     }
 
@@ -36,24 +34,63 @@ class App extends React.Component{
     }
 
     addTask = ()=> {
-
         const {input, todos} = this.state;
+        let id = null;
+        let parent = null;
+
+        let index = todos.findIndex(todo => todo.edit === true);
+        if(index > 0 ) id = todos[index].id;
+
+
         if(Object.is({input}.input,"")){
             return ;
         }
-        let parent = todos.map((todo)=>{
-            if(todo.select)
-                return todo.id;
-            }).sort();
-        const todo = JSON.stringify({'text' : input, 'status' : false, 'parent' : parent[0] ? parent[0] : "" , 'select' : "" });
-        axios.post('http://localhost:8080/insert',todo,config).then(response =>{
+        index = todos.findIndex(todo => todo.select === true);
+
+        if(index > 0) parent = todos[index].id ;
+        const todo = JSON.stringify({'id': id ,'text' : input, 'status' : false, 'parent' : parent, 'select' : "" });
+        axios.post('http://localhost:8080/save',todo,config).then(response =>{
             this.setState({
                 todos : response.data
             });
         });
         this.setState({
             input : '',
+            placeholder : "Write Your Task"
         });
+    }
+
+    editTask = (id) => {
+        const {todos} = this.state;
+        const index = todos.findIndex(todo => todo.id === id);
+
+        const selected = todos[index];
+
+        console.log(selected);
+
+        this.setState({
+            todos: [
+                ...todos.slice(0, index).map(
+                    (todo)=>{
+                        todo.eidt = false;
+                        return todo;
+                    },
+                ),
+                {
+                    ...selected,
+                    edit: !selected.edit,
+                },
+                ...todos.slice(index + 1, todos.length).map(
+                    (todo)=>{
+                        todo.edit = false;
+                        return todo;
+                    },
+                )
+            ],
+            input : '',
+            placeholder : "edit Your Task"
+        });
+
     }
 
 
@@ -80,13 +117,14 @@ class App extends React.Component{
 
     render() {
 
-        const {todos,input} = this.state;
+        const {todos,input, placeholder} = this.state;
         const {
             inputChange,
             toggleStatus,
             addTask,
             removeTask,
             onToggleSelect,
+            editTask
         } = this;
         return (
             <TodoTemplate
@@ -95,6 +133,7 @@ class App extends React.Component{
                         value = {input}
                         addTask = {addTask}
                         inputChange = {inputChange}
+                        placeholder = {placeholder}
                     />
                 }
                 todoList = {
@@ -103,6 +142,7 @@ class App extends React.Component{
                         toggleStatus = {toggleStatus}
                         removeTask = {removeTask}
                         onToggleSelect = {onToggleSelect}
+                        editTask ={editTask}
                         />
                 }
             >
@@ -118,7 +158,7 @@ class App extends React.Component{
         const selected = todos[index];
         selected.status = !selected.status;
 
-        axios.post('http://localhost:8080/insert',selected,config).then(response =>{
+        axios.post('http://localhost:8080/save',selected,config).then(response =>{
             this.setState({
                 todos : response.data
             });
@@ -134,7 +174,6 @@ class App extends React.Component{
 
         const selected = todos[index];
 
-        console.log(selected.parent)
         if (selected.parent) {
             return;
         }

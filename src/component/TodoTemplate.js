@@ -2,7 +2,6 @@ import React from 'react';
 
 
 const TodoTemplate = ({form , todoList}) => {
-    // console.log(todoList)
     return(
         <div>
             <section>
