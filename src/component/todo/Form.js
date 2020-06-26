@@ -7,6 +7,6 @@ const Form = ({value, placeholder, addTask ,inputChange}) => {
             <label onClick={addTask} > + </label>
         </div>
     )
-}
 
+}
 export default Form;

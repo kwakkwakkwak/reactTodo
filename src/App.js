@@ -1,7 +1,7 @@
 import React from 'react';
-import Form from './component/Form.js'
-import TodoTemplate from './component/TodoTemplate.js'
-import TodoList from "./component/TodoList";
+import Form from './component/todo/Form.js'
+import TodoTemplate from './component/todo/TodoTemplate.js'
+import TodoList from "./component/todo/TodoList";
 import axios from 'axios';
 
 
@@ -9,20 +9,20 @@ let config = {headers: { 'Content-Type': 'application/json',} }
 
 class App extends React.Component{
 
-
-
-
     state = {
         input : '',
         todos: [
         ],
-        placeholder : "write Your Task"
+        placeholder : "write Your Task",
+        member : {seq:1, id: 'kwak'},
 
     }
 
     getList = () =>{
-
-        axios.get('http://localhost:8080/findAll').then(response =>{
+        console.log("in get List ");
+        const {member} = this.state;
+        console.log(member);
+        axios.post('http://localhost:8080/findAll',member,config).then(response =>{
             this.setState({
                 todos : response.data
             });
@@ -34,7 +34,7 @@ class App extends React.Component{
     }
 
     addTask = ()=> {
-        const {input, todos} = this.state;
+        const {input, todos, member} = this.state;
         let id = null;
         let parent = null;
 
@@ -48,11 +48,15 @@ class App extends React.Component{
         index = todos.findIndex(todo => todo.select === true);
 
         if(index > 0) parent = todos[index].id ;
-        const todo = JSON.stringify({'id': id ,'text' : input, 'status' : false, 'parent' : parent, 'select' : "" });
+        const todo = JSON.stringify({'id': id ,'text' : input, 'status' : false, 'parent' : parent, 'select' : "",'member': member });
         axios.post('http://localhost:8080/save',todo,config).then(response =>{
-            this.setState({
-                todos : response.data
-            });
+            if(response.data === null  ){
+                return alert("E.E.R.O.R.");
+            }else {
+                this.setState({
+                    todos: response.data
+                });
+            }
         });
         this.setState({
             input : '',
@@ -95,16 +99,18 @@ class App extends React.Component{
 
 
     removeTask = (id) => {
-        const todo = {"id" : id };
+        const {member} = this.state;
+        const todo = {"id" : id ,'member': member };
         axios.post('http://localhost:8080/delete',todo,config).then(response =>{
-            if(response.data < 0  ){
-                return alert("하위 메뉴부터 삭제해주세요 ");
-
-            }
-            this.setState({
-                todos : response.data
+                if(response.data === null  ){
+                    return alert("하위 메뉴부터 삭제해주세요 ");
+                }
+                else{
+                    this.setState({
+                        todos : response.data
+                    });
+                }
             });
-        });
     }
 
 
